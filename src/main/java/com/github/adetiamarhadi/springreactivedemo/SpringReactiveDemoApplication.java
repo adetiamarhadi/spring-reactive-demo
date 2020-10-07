@@ -6,9 +6,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SpringBootApplication
 public class SpringReactiveDemoApplication implements CommandLineRunner {
@@ -28,9 +32,11 @@ public class SpringReactiveDemoApplication implements CommandLineRunner {
 
 		Instant start = Instant.now();
 
-		for (int i = 0; i < 3; i++) {
-			webClient.get().uri("/person/{id}", i).retrieve().bodyToMono(Person.class).block();
-		}
+		List<Mono<Person>> personMonos = Stream.of(1, 2, 3)
+				.map(i -> webClient.get().uri("/person/{id}", i).retrieve().bodyToMono(Person.class)).collect(
+						Collectors.toList());
+
+		Mono.when(personMonos).block();
 
 		logTime(start);
 	}
