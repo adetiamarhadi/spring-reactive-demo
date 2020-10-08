@@ -30,8 +30,9 @@ public class SpringReactiveDemoApplication implements CommandLineRunner {
 		Instant start = Instant.now();
 
 		Flux.range(1, 3)
-				.flatMap(i -> webClient.get().uri("/person/{id}", i).exchange()
-						.flatMap(response -> response.toEntity(Person.class)))
+				.flatMap(i -> webClient.get().uri("/person/{id}", i).retrieve().bodyToMono(Person.class)
+						.flatMap(person -> webClient.get().uri("/person/{id}/hobby", i).retrieve()
+								.bodyToMono(Hobby.class)))
 				.blockLast();
 
 		logTime(start);
